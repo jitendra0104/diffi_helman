@@ -9,7 +9,7 @@ def diffe_helman():
     p = 23
     x = 3
     y = 5
-    
+
     k1 = power(g, x, p)
     k2 = power(g, y, p)
     print("Shared key for Alice is:", k1)
@@ -17,10 +17,3 @@ def diffe_helman():
 
     shared_key = power(k2, x, p)
     print("Shared secret key is:", shared_key)
-
-def encryption(shared_key):
-    plain_text = "Hello World"
-    cipher_text = ""
-    for i in plain_text:
-        cipher_text += chr((ord(i) + shared_key) % 256)
-    print("Cipher Text:", cipher_text)
