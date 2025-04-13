@@ -1,30 +1,61 @@
 import socket
-import ceaser_cipher
-import diffi_helman
+import random
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+import hashlib
 
-def client_program():
-    host = socket.gethostname()
-    port = 5000
-    client_socket = socket.socket()
-    client_socket.connect((host, port))
 
-    diffi_helman.diffe_helman()
-    shared_key = diffi_helman.power(9, 3, 23) 
+def sender(n, g):
+   x = random.randint(2, 10)
+   k1 = pow(g, x, n)
+   return k1, x
 
-    print(f"Shared Key: {shared_key}")
 
-    message = input("Enter the message: ")
+def shared_key_sender(k2, x, n):
+   return pow(k2, x, n)
 
-    while message.lower().strip() != 'bye':
-        encrypted_text = ceaser_cipher.encryption_ceaser_cipher(message, shared_key)
-        client_socket.send(encrypted_text.encode())
 
-        data = client_socket.recv(1024).decode()
-        decrypted_data = ceaser_cipher.decryption_ceaser_cipher(data, shared_key)
-        print("Server:", decrypted_data)
+def compute_hash(message):
+   return hashlib.sha512(message.encode()).digest()
 
-        message = input("Enter the message: ")
 
-    client_socket.close()
+def aes_encrypt(message, key):
+   hash_code = compute_hash(message)
+   combined_data = message.encode() + hash_code
+   cipher = AES.new(key, AES.MODE_CBC)
+   encrypted = cipher.encrypt(pad(combined_data, AES.block_size))
+   return cipher.iv + encrypted
 
-client_program()
+
+def client():
+   n = int(input("Enter the value of n: "))
+   g = int(input("Enter the primitive root g: "))
+  
+   k1, x = sender(n, g)
+   print("Sender's public key:", k1)
+  
+   client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+   client_socket.connect(('localhost', 12345))
+  
+   public_receiver = int(client_socket.recv(1024).decode())
+   client_socket.send(str(k1).encode())
+
+
+   shared_key = shared_key_sender(public_receiver, x, n)
+   print(f"Shared secret key: {shared_key}")
+
+
+   aes_key = hashlib.sha512(str(shared_key).encode()).digest()[:16]
+
+
+   message = input("Enter the message to send: ")
+   encrypted_message = aes_encrypt(message, aes_key)
+  
+   print(f"Encrypted message: {encrypted_message.hex()}")
+  
+   client_socket.send(encrypted_message)
+   client_socket.close()
+
+# this is a comment added to check the pushing into git
+
+client()

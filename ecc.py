@@ -11,12 +11,9 @@ def point_addition(P, Q):
         return P
     if P == Q:
         return point_doubling(P)
-    
     if x1 == x2:
         return (None, None)
-    
     m = (y2 - y1)/(x2 - x1)
-    
     x3 = (m**2 - x1 - x2) % p
     y3 = (m * (x1 - x3) - y1) % p
     return (x3, y3)
@@ -42,4 +39,3 @@ def gen_key_from_ecc():
     key_str = (str(x) + str(y)).encode()
     key = (key_str * 16)[:16]
     return key
-
